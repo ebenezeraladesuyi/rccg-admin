@@ -80,15 +80,15 @@ const UploadBlog = () => {
             <form  onSubmit={handleSubmit} className=" w-full flex flex-col gap-5">
 
                 <div className="w-full flex flex-col gap-2">
-                    <h6 className="text-[17px]">Title</h6>
-                    <input type="text" className="w-full h-[40px] border-[1px] border-gray-200 rounded-[25px] outline-none p-6 text-[13px]" 
+                    <h6 className="text-[17px] text-[#000000]">Title</h6>
+                    <input type="text" className="w-full h-[40px] border-[1px] border-gray-200 rounded-[25px] outline-none p-6 text-[13px] bg-[#ffffff]" 
                     name='title' value={formData.title} onChange={handleChange}
                     />
                 </div>
 
                 <div className="w-full flex flex-col gap-2">
-                    <h6 className="text-[17px]">Author</h6>
-                    <input type="text" className="w-full h-[40px] border-[1px] border-gray-200 rounded-[25px] outline-none p-6 text-[13px]"  
+                    <h6 className="text-[17px] text-[#000000]">Author</h6>
+                    <input type="text" className="w-full h-[40px] border-[1px] border-gray-200 rounded-[25px] outline-none p-6 text-[13px] bg-[#ffffff]"  
                     name='author' value={formData.author} onChange={handleChange}
                     />
                 </div>
@@ -114,8 +114,8 @@ const UploadBlog = () => {
                 </div>
 
                 <div className="w-full flex flex-col gap-2">
-                    <h6 className="text-[17px]">Details</h6>
-                    <input type="text" className="w-full h-[40px] border-[1px] border-gray-200 rounded-[25px] outline-none p-6 text-[13px]"  
+                    <h6 className="text-[17px] text-[#000000]">Details</h6>
+                    <input type="text" className="w-full h-[40px] border-[1px] border-gray-200 rounded-[25px] outline-none p-6 text-[13px] bg-[#ffffff]"  
                     name='details' value={formData.details} onChange={handleChange}
                     />
                 </div>
