@@ -67,7 +67,7 @@ const UploadBlog = () => {
                 }
             })
 
-            // console.log('Blog uploaded successfully:', response.data)
+            console.log('Blog uploaded successfully:', response.data)
 
             // Reset form
             setFormData({
