@@ -59,7 +59,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-full h-[100vh] p-[20px] text-white font-bold flex flex-col gap-6 pt-[120px] bg-[#23a1db]">
+    <div className="w-full h-[100vh] p-[20px] text-white font-bold flex flex-col gap-6 pt-[120px] bg-[#23a1db bg-[#28166f]">
       <NavLink 
         to="/dashboard"
         end

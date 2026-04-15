@@ -411,15 +411,15 @@ const fetchBookingDetails = async (id: string) => {
       </AnimatePresence>
 
       {/* Header with SuperAdmin Badge */}
-      <div className="bg-gradient-to-r from-[#28166f] to-[#3a2a8a] text-white py-8 px-4 pt-24">
+      <div className="bg-gradient-to-r bg-[#ffffff] shadow-md text-[#28166f] from-[#28166f to-[#3a2a8a text-white py-8 px-4 pt-24">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between text-[#28166f]">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold mb-2">Booking Management</h1>
-              <p className="text-gray-200">Manage and track all facility booking requests</p>
+              <p className="text-[#28166f]">Manage and track all facility booking requests</p>
             </div>
             <div className="bg-yellow-500/20 px-4 py-2 rounded-lg border border-yellow-500/50">
-              <span className="text-yellow-300 font-semibold">Super Admin Access</span>
+              <span className="text-[#28166f] font-semibold">Super Admin Access</span>
             </div>
           </div>
         </div>

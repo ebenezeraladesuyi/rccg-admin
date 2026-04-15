@@ -42,14 +42,14 @@ const FirsstTimers = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-8 shadow-md rounded-lg"
         >
-          <div className="bg-gradient-to-r from-[#23a1db] to-[#1e8bc3] rounded-2xl p-6 text-white">
+          <div className="bg-gradient-to-r from-[#23a1db to-[#1e8bc3 bg-[#ffffff] text-[#28166f] rounded-2xl p-6 ">
             <div className="flex items-center gap-3 mb-2">
               <FaUsers className="text-3xl" />
               <h1 className="text-3xl md:text-4xl font-bold">First-Timers Database</h1>
             </div>
-            <p className="text-gray-100">Manage and track all first-time visitors to our church</p>
+            <p className="">Manage and track all first-time visitors to our church</p>
           </div>
         </motion.div>
 
@@ -276,17 +276,17 @@ const FirsstTimers = () => {
             className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-gradient-to-r from-[#23a1db] to-[#1e8bc3] text-white p-6 rounded-t-2xl">
+            <div className="sticky top-0 bg-gradient-to-r from-[#23a1db] to-[#1e8bc3] text-whit p-6 rounded-t-2xl">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">Visitor Details</h2>
                 <button onClick={() => setShowModal(false)} className="text-white hover:text-gray-200">
                   <FaTimes size={24} />
                 </button>
               </div>
-              <p className="text-gray-100 mt-1">Complete information about {selectedTimer.name}</p>
+              <p className="mt-1">Complete information about <strong>{selectedTimer.name}</strong></p>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-6 text-[#000000] ">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
@@ -321,6 +321,17 @@ const FirsstTimers = () => {
                   Spiritual Information
                 </h3>
                 <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+
+  <div className="flex items-center justify-between">
+    <span className="font-semibold text-gray-700">Visiting or Staying:</span>
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+      selectedTimer?.visitOrStay === 'staying' 
+        ? 'bg-green-100 text-green-700'
+        : 'bg-yellow-100 text-yellow-700'
+    }`}>
+      {selectedTimer?.visitOrStay || 'N/A'}
+    </span>
+  </div>
                   <div className="flex justify-between items-center">
   <span className="font-semibold text-gray-700">Accepted Jesus as Saviour:</span>
   <span className={`px-3 py-1 rounded-full text-sm font-medium ${
