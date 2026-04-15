@@ -17,7 +17,7 @@ export interface iFirst {
     visitOrStay : string;
     prayerRequest : string;
     haveJesus : string;
-    pastorVisit : boolean;
+    pastorVisit : string;
 }
 
 export interface iBlog {

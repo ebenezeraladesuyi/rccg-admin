@@ -1,14 +1,10 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { 
   FaCalendarAlt, 
   FaUser, 
-//   FaEnvelope, 
-//   FaPhone, 
-//   FaUsers, 
   FaClock, 
-//   FaInfoCircle,
-//   FaChurch,
   FaSearch,
   FaTimes,
   FaEdit,
@@ -19,17 +15,8 @@ import {
   FaSpinner,
   FaCheckCircle,
   FaExclamationTriangle,
-//   FaChartBar,
-//   FaFilter,
-//   FaDownload,
-//   FaThumbsUp,
-//   FaThumbsDown,
   FaBan,
-//   FaUndo,
-//   FaBuilding,
-//   FaCalendarCheck,
-//   FaPercent,
-//   FaArrowLeft
+  FaLock
 } from 'react-icons/fa'
 import axios from 'axios'
 import { url } from '../../utils/Api'
@@ -52,28 +39,10 @@ interface Booking {
   updatedAt: string
 }
 
-interface BookingStats {
-  total: number
-  pending: number
-  approved: number
-  rejected: number
-  cancelled: number
-  monthlyStats: Array<{
-    month: string
-    count: number
-  }>
-  recentActivity: Array<{
-    action: string
-    bookingId: string
-    userName: string
-    timestamp: string
-  }>
-}
-
 const GetAllBookings = () => {
+  const navigate = useNavigate()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
-  const [stats, setStats] = useState<BookingStats | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
@@ -88,6 +57,7 @@ const GetAllBookings = () => {
   }>({ bookingId: '', status: '', adminNotes: '' })
   const [actionLoading, setActionLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [authorized, setAuthorized] = useState<boolean | null>(null)
   const [toast, setToast] = useState<{
     show: boolean;
     type: 'success' | 'error' | 'info';
@@ -100,124 +70,232 @@ const GetAllBookings = () => {
     setTimeout(() => setToast(null), 5000)
   }
 
-  // Fetch all bookings
-  const fetchBookings = async () => {
-    try {
-      setLoading(true)
-      const response = await axios.get(`${url}/book/admin`)
-      if (response.data.success) {
-        setBookings(response.data.data)
-      }
-      console.log("all-book", response)
-    } catch (error) {
-      console.error('Error fetching bookings:', error)
-      showToast('error', 'Error', 'Failed to fetch bookings')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Fetch booking statistics
-  const fetchStats = async () => {
-    try {
-      const response = await axios.get(`${url}/book/admin/stats`)
-      if (response.data.success) {
-        setStats(response.data.data)
-      }
-      console.log("stats", response)
-    } catch (error) {
-      console.error('Error fetching stats:', error)
-    }
-  }
-
-  // Update booking status
-  const updateBookingStatus = async () => {
-    if (!statusUpdateData.bookingId || !statusUpdateData.status) return
-    
-    setActionLoading(true)
-    try {
-      const response = await axios.put(
-        `${url}/book/admin/${statusUpdateData.bookingId}/status`,
-        {
-          status: statusUpdateData.status,
-          adminNotes: statusUpdateData.adminNotes
+  // Check admin role from localStorage
+  useEffect(() => {
+    const adminData = localStorage.getItem('adminData')
+    if (adminData) {
+      try {
+        const admin = JSON.parse(adminData)
+        // console.log("admin-data", admin)
+        
+        // Check if user is superAdmin
+        if (admin.role !== 'superAdmin') {
+          setAuthorized(false)
+          showToast('error', 'Access Denied', 'Only Super Administrators can access this page')
+          setTimeout(() => {
+            navigate('/dashboard')
+          }, 2000)
+        } else {
+          setAuthorized(true)
         }
-      )
-
-      console.log('status', response)
-      
-      if (response.data.success) {
-        showToast('success', 'Success', `Booking ${statusUpdateData.status} successfully`)
-        fetchBookings()
-        fetchStats()
-        setShowStatusModal(false)
-        setStatusUpdateData({ bookingId: '', status: '', adminNotes: '' })
+      } catch (error) {
+        console.error('Error parsing admin data:', error)
+        navigate('/')
       }
-    } catch (error: any) {
-      console.error('Error updating status:', error)
-      showToast('error', 'Error', error.response?.data?.message || 'Failed to update status')
-    } finally {
-      setActionLoading(false)
+    } else {
+      navigate('/')
     }
-  }
+  }, [navigate])
 
-  // Delete booking
-  const deleteBooking = async () => {
-    if (!selectedBooking) return
+  // Fetch all bookings
+const fetchBookings = async () => {
+  try {
+    setLoading(true)
+    const token = localStorage.getItem('adminToken')
     
-    setActionLoading(true)
-    try {
-      const response = await axios.delete(`${url}/book/admin/${selectedBooking._id}`)
-
-      console.log('deleted', response)
-      
-      if (response.data.success) {
-        showToast('success', 'Deleted', 'Booking deleted successfully')
-        fetchBookings()
-        fetchStats()
-        setShowDeleteModal(false)
-        setSelectedBooking(null)
-      }
-    } catch (error: any) {
-      console.error('Error deleting booking:', error)
-      showToast('error', 'Error', error.response?.data?.message || 'Failed to delete booking')
-    } finally {
-      setActionLoading(false)
+    // Check if token exists
+    if (!token) {
+      console.error('No token found')
+      showToast('error', 'Authentication Error', 'Please login again')
+      setTimeout(() => {
+        navigate('/')
+      }, 2000)
+      return
     }
-  }
-
-  // Get single booking details
-  const fetchBookingDetails = async (id: string) => {
-    try {
-      const response = await axios.get(`${url}/book/admin/${id}`)
-      if (response.data.success) {
-        setSelectedBooking(response.data.data)
-        setShowDetailsModal(true)
+    
+    // console.log('Token being sent:', token.substring(0, 20) + '...') // Log first 20 chars of token
+    
+    const response = await axios.get(`${url}/book/admin`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
-      console.log('book-details', response)
-    } catch (error) {
-      console.error('Error fetching booking details:', error)
+    })
+    
+    if (response.data.success) {
+      setBookings(response.data.data)
+    }
+    // console.log("all-book", response)
+  } catch (error: any) {
+    console.error('Error fetching bookings:', error)
+    
+    // Handle specific error status codes
+    if (error.response?.status === 401) {
+      // Unauthorized - token invalid or expired
+      showToast('error', 'Session Expired', 'Please login again')
+      localStorage.removeItem('adminToken')
+      localStorage.removeItem('adminData')
+      setTimeout(() => {
+        navigate('/')
+      }, 2000)
+    } else if (error.response?.status === 403) {
+      // Forbidden - not enough permissions
+      showToast('error', 'Access Denied', 'You do not have permission to view bookings')
+      setTimeout(() => {
+        navigate('/dashboard')
+      }, 2000)
+    } else {
+      showToast('error', 'Error', 'Failed to fetch bookings')
+    }
+  } finally {
+    setLoading(false)
+  }
+}
+
+// Update the updateBookingStatus function
+const updateBookingStatus = async () => {
+  if (!statusUpdateData.bookingId || !statusUpdateData.status) return
+  
+  setActionLoading(true)
+  try {
+    const token = localStorage.getItem('adminToken')
+    
+    if (!token) {
+      showToast('error', 'Authentication Error', 'Please login again')
+      setTimeout(() => navigate('/'), 2000)
+      return
+    }
+    
+    const response = await axios.put(
+      `${url}/book/admin/${statusUpdateData.bookingId}/status`,
+      {
+        status: statusUpdateData.status,
+        adminNotes: statusUpdateData.adminNotes
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+    
+    if (response.data.success) {
+      showToast('success', 'Success', `Booking ${statusUpdateData.status} successfully`)
+      fetchBookings()
+      setShowStatusModal(false)
+      setStatusUpdateData({ bookingId: '', status: '', adminNotes: '' })
+    }
+  } catch (error: any) {
+    console.error('Error updating status:', error)
+    if (error.response?.status === 401) {
+      showToast('error', 'Session Expired', 'Please login again')
+      localStorage.removeItem('adminToken')
+      localStorage.removeItem('adminData')
+      setTimeout(() => navigate('/'), 2000)
+    } else {
+      showToast('error', 'Error', error.response?.data?.message || 'Failed to update status')
+    }
+  } finally {
+    setActionLoading(false)
+  }
+}
+
+// Update the deleteBooking function
+const deleteBooking = async () => {
+  if (!selectedBooking) return
+  
+  setActionLoading(true)
+  try {
+    const token = localStorage.getItem('adminToken')
+    
+    if (!token) {
+      showToast('error', 'Authentication Error', 'Please login again')
+      setTimeout(() => navigate('/'), 2000)
+      return
+    }
+    
+    const response = await axios.delete(`${url}/book/admin/${selectedBooking._id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    if (response.data.success) {
+      showToast('success', 'Deleted', 'Booking deleted successfully')
+      fetchBookings()
+      setShowDeleteModal(false)
+      setSelectedBooking(null)
+    }
+  } catch (error: any) {
+    console.error('Error deleting booking:', error)
+    if (error.response?.status === 401) {
+      showToast('error', 'Session Expired', 'Please login again')
+      localStorage.removeItem('adminToken')
+      localStorage.removeItem('adminData')
+      setTimeout(() => navigate('/'), 2000)
+    } else {
+      showToast('error', 'Error', error.response?.data?.message || 'Failed to delete booking')
+    }
+  } finally {
+    setActionLoading(false)
+  }
+}
+
+// Update the fetchBookingDetails function
+const fetchBookingDetails = async (id: string) => {
+  try {
+    const token = localStorage.getItem('adminToken')
+    
+    if (!token) {
+      showToast('error', 'Authentication Error', 'Please login again')
+      setTimeout(() => navigate('/'), 2000)
+      return
+    }
+    
+    const response = await axios.get(`${url}/book/admin/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    if (response.data.success) {
+      setSelectedBooking(response.data.data)
+      setShowDetailsModal(true)
+    }
+  } catch (error: any) {
+    console.error('Error fetching booking details:', error)
+    if (error.response?.status === 401) {
+      showToast('error', 'Session Expired', 'Please login again')
+      localStorage.removeItem('adminToken')
+      localStorage.removeItem('adminData')
+      setTimeout(() => navigate('/'), 2000)
+    } else {
       showToast('error', 'Error', 'Failed to fetch booking details')
     }
   }
+}
 
+  // Fetch data only when authorized is true
   useEffect(() => {
-    fetchBookings()
-    fetchStats()
-  }, [])
+    if (authorized === true) {
+      fetchBookings()
+    }
+  }, [authorized])
 
   // Filter and search bookings
   const filteredBookings = bookings.filter(booking => {
-  const matchesSearch = 
-    (booking.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (booking.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (booking.referenceId?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (booking.eventType?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  
-  const matchesStatus = statusFilter === 'all' || (booking.status && booking.status === statusFilter)
-  
-  return matchesSearch && matchesStatus
-})
+    const matchesSearch = 
+      (booking.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (booking.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (booking.referenceId?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (booking.eventType?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+    
+    const matchesStatus = statusFilter === 'all' || (booking.status && booking.status === statusFilter)
+    
+    return matchesSearch && matchesStatus
+  })
 
   // Pagination
   const totalPages = Math.ceil(filteredBookings.length / itemsPerPage)
@@ -264,6 +342,41 @@ const GetAllBookings = () => {
     return `${hour12}:${minutes} ${ampm}`
   }
 
+  // Show loading while checking authorization
+  if (authorized === null) {
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <FaSpinner className="animate-spin text-5xl text-[#28166f] mx-auto mb-4" />
+          <p className="text-gray-600">Verifying access...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show access denied if not superAdmin
+  if (authorized === false) {
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
+          <div className="bg-red-100 p-4 rounded-full inline-flex mx-auto mb-4">
+            <FaLock className="text-red-600 text-4xl" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600 mb-6">
+            You do not have permission to access this page. This section is only available to Super Administrators.
+          </p>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="px-6 py-2 bg-gradient-to-r from-[#28166f] to-[#3a2a8a] text-white rounded-lg hover:shadow-lg transition-all"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-mont">
       {/* Toast Notification */}
@@ -297,84 +410,22 @@ const GetAllBookings = () => {
         )}
       </AnimatePresence>
 
-      {/* Header */}
+      {/* Header with SuperAdmin Badge */}
       <div className="bg-gradient-to-r from-[#28166f] to-[#3a2a8a] text-white py-8 px-4 pt-24">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Booking Management</h1>
-          <p className="text-gray-200">Manage and track all facility booking requests</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">Booking Management</h1>
+              <p className="text-gray-200">Manage and track all facility booking requests</p>
+            </div>
+            <div className="bg-yellow-500/20 px-4 py-2 rounded-lg border border-yellow-500/50">
+              <span className="text-yellow-300 font-semibold">Super Admin Access</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Statistics Cards */}
-        {stats && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8"
-          >
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">Total Bookings</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                </div>
-                <div className="bg-purple-100 p-3 rounded-full">
-                  <FaCalendarAlt className="text-purple-600" />
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">Pending</p>
-                  <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-                </div>
-                <div className="bg-yellow-100 p-3 rounded-full">
-                  <FaClock className="text-yellow-600" />
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">Approved</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
-                </div>
-                <div className="bg-green-100 p-3 rounded-full">
-                  <FaCheckCircle className="text-green-600" />
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">Rejected</p>
-                  <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
-                </div>
-                <div className="bg-red-100 p-3 rounded-full">
-                  <FaTimes className="text-red-600" />
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">Cancelled</p>
-                  <p className="text-2xl font-bold text-gray-600">{stats.cancelled}</p>
-                </div>
-                <div className="bg-gray-100 p-3 rounded-full">
-                  <FaBan className="text-gray-600" />
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
         {/* Search and Filter Bar */}
         <div className="bg-white rounded-xl shadow-md p-4 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
@@ -636,7 +687,7 @@ const GetAllBookings = () => {
                       {selectedBooking.adminNotes && (
                         <p className='text-[#000000]'><strong className="text-gray-700">Admin Notes:</strong> {selectedBooking.adminNotes}</p>
                       )}
-                      <p  className='text-[#000000]'><strong className="text-gray-700">Submitted:</strong> {new Date(selectedBooking.createdAt).toLocaleString()}</p>
+                      <p className='text-[#000000]'><strong className="text-gray-700">Submitted:</strong> {new Date(selectedBooking.createdAt).toLocaleString()}</p>
                       <p className='text-[#000000]'><strong className="text-gray-700">Last Updated:</strong> {new Date(selectedBooking.updatedAt).toLocaleString()}</p>
                     </div>
                   </div>
