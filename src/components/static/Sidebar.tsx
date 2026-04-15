@@ -4,21 +4,46 @@ import { NavLink } from "react-router-dom"
 import { LuFileAudio } from "react-icons/lu";
 import { AiTwotonePicture } from "react-icons/ai";
 import { FaUsers } from "react-icons/fa";
+import { TbBrandBooking } from "react-icons/tb";
 
 const Sidebar = () => {
   return (
     <div className="w-full h-[100vh] p-[20px] text-white font-bold flex flex-col gap-6 pt-[120px] bg-[#23a1db]">
 
-      <NavLink to="/">
+      <NavLink 
+        to="/"
+        className={({ isActive }) => 
+          isActive ? "bg-white/20 rounded-lg px-3 py-2" : "px-3 py-2"
+        }
+      >
         <ol className="cursor-pointer text-white flex gap-2 items-center"><span className=""><AiTwotonePicture /></span>Upload Gallery</ol>
       </NavLink>
 
-      <NavLink to="/uploadblog">
+      <NavLink 
+        to="/uploadblog"
+        className={({ isActive }) => 
+          isActive ? "bg-white/20 rounded-lg px-3 py-2" : "px-3 py-2"
+        }
+      >
         <ol className="cursor-pointer text-white flex gap-2 items-center"><span className=""><LuFileAudio /></span>Upload Blog</ol>
       </NavLink>
 
-      <NavLink to="/firsttimers">
+      <NavLink 
+        to="/firsttimers"
+        className={({ isActive }) => 
+          isActive ? "bg-white/20 rounded-lg px-3 py-2" : "px-3 py-2"
+        }
+      >
         <ol className="cursor-pointer text-white flex gap-2 items-center"><span className=""><FaUsers /></span>All First Timers</ol>
+      </NavLink>
+
+      <NavLink 
+        to="/all-bookings"
+        className={({ isActive }) => 
+          isActive ? "bg-white/20 rounded-lg px-3 py-2" : "px-3 py-2"
+        }
+      >
+        <ol className="cursor-pointer text-white flex gap-2 items-center"><span className=""><TbBrandBooking /></span>All Bookings</ol>
       </NavLink>
       
     </div>

@@ -7,6 +7,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 const FirsstTimers = lazy(() => import("../pages/dashboard/FirsstTimers"));
 const Gallery = lazy(() => import("../pages/dashboard/Gallery"));
 const UploadBlog = lazy(() => import("../pages/dashboard/UploadBlog"));
+const GetAllBookings = lazy(() => import("../pages/dashboard/GetAllBookings"));
 
 
 export const element = createBrowserRouter([
@@ -25,6 +26,10 @@ export const element = createBrowserRouter([
             {
                 path: "firsttimers",
                 element: <FirsstTimers />
+            },
+            {
+                path: "all-bookings",
+                element: <GetAllBookings />
             },
         ]
     }

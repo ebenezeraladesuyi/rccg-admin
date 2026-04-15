@@ -16,11 +16,11 @@ const DashboardLayout = () => {
         </div>
 
         <div className='w-full min-h-screen flex justify-betwee'>
-            <div className='fixed min-h-screen w-[300px] '>
+            <div className='fixed min-h-screen w-[260px] '>
                 <Sidebar />
             </div>
 
-            <div className='w-[calc(100%-310px)] ml-[260px] min-h-screen bg-white'>
+            <div className='w-[calc(100%-260px)]  ml-[260px] min-h-screen bg-white'>
                 {/* {children} */}
                 <Outlet />
             </div>
